@@ -1,0 +1,36 @@
+def stable_marriage(men_preferences, women_preferences):
+    free_men = list(men_preferences.keys())
+    women_partners = {woman: None for woman in women_preferences}
+    men_next_proposal = {man: 0 for man in men_preferences}
+    women_ranking = {
+        woman: {man: rank for rank, man in enumerate(prefs)}
+        for woman, prefs in women_preferences.items()
+    }
+    while free_men:
+        man = free_men[0]
+        woman = men_preferences[man][men_next_proposal[man]]
+        men_next_proposal[man] += 1 
+        if women_partners[woman] is None:
+            women_partners[woman] = man
+            free_men.pop(0)
+        else:
+            current_partner = women_partners[woman]
+            if women_ranking[woman][man] < women_ranking[woman][current_partner]:
+                women_partners[woman] = man
+                free_men[0] = current_partner
+    return {man: woman for woman, man in women_partners.items()}
+men_preferences = {
+    'A': ['X', 'Y', 'Z','D'],
+    'B': ['Y', 'D','X', 'Z'],
+    'C': ['D','Y', 'Z', 'X'],
+    'T': ['D','X', 'Y', 'Z']
+}
+women_preferences = {
+    'X': ['B', 'A', 'C','T'],
+    'Y': ['A','T', 'B', 'C'],
+    'Z': ['A', 'B','T', 'C'],
+    'D': ['A', 'B', 'C','T']
+}
+
+result = stable_marriage(men_preferences, women_preferences)
+print("Стабильные пары:", result)
