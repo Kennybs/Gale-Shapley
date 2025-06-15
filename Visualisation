@@ -1,0 +1,85 @@
+import matplotlib.pyplot as plt
+import matplotlib.patches as patches
+import numpy as np
+
+men_preferences = {
+    'A': ['X', 'Y', 'Z', 'D'],
+    'B': ['Y', 'D', 'X', 'Z'],
+    'C': ['D', 'Y', 'Z', 'X'],
+    'T': ['D', 'X', 'Y', 'Z']
+}
+women_preferences = {
+    'X': ['B', 'A', 'C', 'T'],
+    'Y': ['A', 'T', 'B', 'C'],
+    'Z': ['A', 'B', 'T', 'C'],
+    'D': ['A', 'B', 'C', 'T']
+}
+
+def stable_marriage(men_preferences, women_preferences):
+    free_men = list(men_preferences.keys())
+    women_partners = {woman: None for woman in women_preferences}
+    men_next_proposal = {man: 0 for man in men_preferences}
+
+    women_ranking = {
+        woman: {man: rank for rank, man in enumerate(prefs)}
+        for woman, prefs in women_preferences.items()
+    }
+    steps = []
+
+    while free_men:
+        man = free_men[0]
+        woman = men_preferences[man][men_next_proposal[man]]
+        men_next_proposal[man] += 1
+
+        if women_partners[woman] is None:
+            women_partners[woman] = man
+            free_men.pop(0)
+        else:
+            current_partner = women_partners[woman]
+            if women_ranking[woman][man] < women_ranking[woman][current_partner]:
+                women_partners[woman] = man
+                free_men[0] = current_partner
+
+        steps.append((dict(women_partners), list(free_men)))
+
+    return steps
+
+def plot_step(step, men, women, pairs, free_men):
+    plt.clf() 
+    ax = plt.gca()
+    ax.scatter(range(len(men)), [0]*len(men), s=1000, alpha=0.5, label='Men', color='blue')
+    ax.scatter(range(len(women)), [1]*len(women), s=1000, alpha=0.5, label='Women', color='orange')
+
+    for i, man in enumerate(men):
+        ax.text(i, 0, man, ha='center', va='center', color='white')
+    for i, woman in enumerate(women):
+        ax.text(i, 1, woman, ha='center', va='center', color='white')
+
+    for woman, man in pairs.items():
+        if man:
+            man_index = men.index(man)
+            woman_index = women.index(woman)
+            ax.plot([man_index, woman_index], [0, 1], 'b-', alpha=0.7)
+    for man in free_men:
+        man_index = men.index(man)
+        ax.scatter(man_index, 0, s=1200, facecolors='none', edgecolors='r', linewidths=2)
+
+    ax.set_title(f'Step {step + 1}')
+    ax.set_xticks([])
+    ax.set_yticks([])
+    ax.legend()
+    ax.grid(False)
+
+    plt.pause(2)  
+
+steps = stable_marriage(men_preferences, women_preferences)
+
+
+men = list(men_preferences.keys())
+women = list(women_preferences.keys())
+
+plt.figure(figsize=(8, 6))
+for step, (pairs, free_men) in enumerate(steps):
+    plot_step(step, men, women, pairs, free_men)
+
+plt.show()
